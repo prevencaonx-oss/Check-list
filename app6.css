@@ -1,0 +1,7 @@
+/* Ícones vetoriais do menu lateral */
+.navbtn{gap:10px!important}
+.navicon{width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 18px;color:inherit}
+.navicon svg{width:18px;height:18px;display:block;stroke:currentColor}
+.navlabel{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.navbtn .navbadge{margin-left:auto}
+.navbtn.active .navicon{color:#fff}
