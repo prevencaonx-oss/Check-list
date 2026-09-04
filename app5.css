@@ -1,0 +1,9 @@
+/* Círculos de progresso proporcionais aos valores reais */
+.pulse-ring{
+  background:conic-gradient(#24d3c7 0 var(--p,0%),rgba(255,255,255,.14) var(--p,0%) 100%)!important;
+  transition:background .25s ease;
+}
+.routine-donut{
+  background:conic-gradient(#20c4ae 0 var(--p,0%),#edf2f7 var(--p,0%) 100%)!important;
+  transition:background .25s ease;
+}
