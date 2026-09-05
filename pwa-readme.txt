@@ -1,0 +1,1 @@
+Instalação Android: abra o sistema no Chrome e use “Instalar app” quando disponível. O PWA usa o mesmo Supabase da operação oficial. O modo offline nesta versão protege o shell do app, mas não grava execuções oficiais sem conexão.
