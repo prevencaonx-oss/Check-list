@@ -1,0 +1,77 @@
+/* Triela Checklists — Android UX 2.0: layout nativo, compacto e sem sobreposição */
+@media(max-width:760px){
+  html.triela-native-android,html.triela-native-android body{background:#f5f7fb!important}
+  html.triela-native-android body{padding-bottom:0!important}
+  html.triela-native-android .app{min-height:100dvh!important}
+
+  /* Topo com cara de aplicativo, sem invadir a barra do Android */
+  html.triela-native-android .topbar{position:sticky!important;top:0!important;height:54px!important;min-height:54px!important;padding:0 12px!important;background:#fff!important;border-bottom:1px solid #e8edf4!important;box-shadow:0 3px 12px rgba(8,27,61,.055)!important;backdrop-filter:none!important}
+  html.triela-native-android .mobilemenu{width:40px!important;height:40px!important;border-radius:12px!important;border:1px solid #e4e9f0!important;background:#fff!important;color:#0a2348!important;font-size:20px!important}
+  html.triela-native-android .topbar .brandtext strong{font-size:14px!important;color:#0b2144!important;font-weight:850!important;letter-spacing:-.01em!important}
+  html.triela-native-android .topbar .brandtext span{display:none!important}
+  html.triela-native-android .top-actions>.iconbtn{display:none!important}
+
+  /* Conteúdo principal */
+  html.triela-native-android .layout main{padding:14px 12px 78px!important}
+  html.triela-native-android .overview-head{margin-top:2px!important;margin-bottom:12px!important}
+  html.triela-native-android .overview-greeting h1{font-size:23px!important;line-height:1.08!important;letter-spacing:-.025em!important}
+  html.triela-native-android .overview-greeting .overview-date{font-size:10.5px!important;line-height:1.45!important;color:#7b8799!important}
+  html.triela-native-android .overview-actions{gap:7px!important}
+  html.triela-native-android .overview-actions .input{min-height:46px!important;border-radius:13px!important;background:#fff!important}
+  html.triela-native-android .overview-actions .btn{min-height:46px!important;border-radius:13px!important;box-shadow:0 8px 18px rgba(91,70,230,.16)!important}
+
+  /* KPIs deixam de ficar cortados na horizontal: grade nativa 2x2 */
+  html.triela-native-android .ov-kpis{display:grid!important;grid-template-columns:1fr 1fr!important;overflow:visible!important;gap:9px!important;margin:0!important;padding:0!important;scroll-snap-type:none!important}
+  html.triela-native-android .ov-kpi{min-width:0!important;width:auto!important;min-height:118px!important;padding:12px!important;border-radius:16px!important;box-shadow:0 5px 15px rgba(9,30,66,.045)!important}
+  html.triela-native-android .ov-main strong{font-size:21px!important}
+  html.triela-native-android .ov-main small{font-size:9px!important}
+  html.triela-native-android .ov-label{font-size:9px!important;line-height:1.25!important}
+
+  /* Dashboard mobile mais curto e legível */
+  html.triela-native-android .ov-card{border-radius:17px!important;padding:13px!important}
+  html.triela-native-android .ov-card h2{font-size:14px!important;line-height:1.22!important}
+  html.triela-native-android .chart-wrap{height:148px!important;margin-top:7px!important}
+  html.triela-native-android .ov-periods button{min-height:30px!important;padding:5px 7px!important}
+  html.triela-native-android .pulse-content{grid-template-columns:82px 1fr!important;gap:10px!important}
+  html.triela-native-android .pulse-ring{width:78px!important;height:78px!important}
+
+  /* Navegação inferior: barra de app, não card gigante flutuante */
+  html.triela-native-android .mobile-tabs{left:0!important;right:0!important;bottom:0!important;height:64px!important;box-sizing:border-box!important;padding:4px 7px 5px!important;gap:2px!important;border:0!important;border-top:1px solid #e3e9f1!important;border-radius:0!important;background:#fff!important;box-shadow:0 -8px 24px rgba(8,27,61,.08)!important;backdrop-filter:none!important}
+  html.triela-native-android .mobile-tabs button{height:54px!important;min-height:54px!important;border-radius:12px!important;gap:2px!important;font-size:9px!important;color:#718096!important}
+  html.triela-native-android .mobile-tabs button::before{font-size:19px!important}
+  html.triela-native-android .mobile-tabs button.active{background:#0a2b59!important;color:#fff!important;box-shadow:none!important}
+
+  /* Drawer lateral compacto, rolável e com respiro embaixo */
+  html.triela-native-android .sidebar{left:0!important;right:auto!important;top:0!important;bottom:0!important;width:min(86vw,340px)!important;height:100%!important;max-height:none!important;border-radius:0 20px 20px 0!important;padding:10px 10px 16px!important;overflow-y:auto!important;overscroll-behavior:contain!important;box-shadow:100vw 0 0 rgba(2,10,26,.48),18px 0 45px rgba(2,10,26,.28)!important;background:#061d3f!important}
+  html.triela-native-android .sidebar-brand{padding:5px 8px 10px!important;margin-bottom:3px!important;border-bottom:1px solid rgba(255,255,255,.08)!important}
+  html.triela-native-android .triela-brand-top{min-height:55px!important;padding:4px 2px 8px!important}
+  html.triela-native-android .triela-brand-top img{width:34px!important;height:39px!important}
+  html.triela-native-android .triela-brand-top .triela-brand-copy strong{font-size:16px!important}
+  html.triela-native-android .triela-brand-top .triela-brand-copy span{font-size:7px!important;letter-spacing:2.4px!important;margin-top:3px!important}
+  html.triela-native-android .sidebar .navgroup{margin:12px 8px 5px!important;font-size:8px!important;letter-spacing:.18em!important;color:#7f93b8!important}
+  html.triela-native-android .sidebar .navbtn{min-height:42px!important;height:42px!important;margin:1px 0!important;border-radius:11px!important;padding:0 11px!important;font-size:11px!important;gap:10px!important}
+  html.triela-native-android .sidebar .navbtn .navicon{width:20px!important;height:20px!important;flex:0 0 20px!important}
+  html.triela-native-android .sidebar .navbtn.active{background:#1377cf!important;box-shadow:none!important}
+  html.triela-native-android .sidebar-powered{display:none!important}
+  html.triela-native-android .triela-account-chip{margin:11px 2px 8px!important;width:calc(100% - 4px)!important;padding:9px 10px!important;border-radius:12px!important}
+  html.triela-native-android .profile{margin:6px 2px 0!important;padding:10px!important;min-height:54px!important;border-radius:13px!important;flex:0 0 auto!important}
+
+  /* Rotina e execução: botões realmente tocáveis */
+  html.triela-native-android .routine-hero{border-radius:18px!important;padding:17px 15px 72px!important}
+  html.triela-native-android .routine-hero h1{font-size:22px!important}
+  html.triela-native-android .routine-start{min-height:48px!important;border-radius:13px!important;font-size:12px!important}
+  html.triela-native-android .routine-row,html.triela-native-android .routine-assigned-row{border-radius:15px!important;padding:12px!important}
+  html.triela-native-android .choice button{min-height:54px!important;border-radius:13px!important;font-size:14px!important}
+  html.triela-native-android .modal,html.triela-native-android .structure-modal,html.triela-native-android .tri-modal{max-height:92dvh!important}
+
+  /* SaaS/conta sem poluir o drawer */
+  html.triela-native-android .tac-copy strong{font-size:10px!important}
+  html.triela-native-android .tac-copy small{font-size:7px!important}
+}
+
+@media(max-width:380px){
+  html.triela-native-android .layout main{padding-left:10px!important;padding-right:10px!important}
+  html.triela-native-android .ov-kpi{min-height:112px!important;padding:11px!important}
+  html.triela-native-android .ov-main strong{font-size:19px!important}
+  html.triela-native-android .overview-greeting h1{font-size:21px!important}
+}
