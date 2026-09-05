@@ -1,5 +1,5 @@
-const CACHE='triela-pwa-v3';
-const SHELL=['/Check-list/','/Check-list/index.html','/Check-list/app.css','/Check-list/app.js','/Check-list/app14.css','/Check-list/pwa-install.js','/Check-list/manifest.webmanifest','/Check-list/icon-192.svg','/Check-list/icon-512.svg','/Check-list/pwa-offline.html'];
+const CACHE='triela-pwa-v4';
+const SHELL=['/Check-list/','/Check-list/index.html','/Check-list/app.css','/Check-list/app.js','/Check-list/app14.css','/Check-list/app15.css','/Check-list/app29.js','/Check-list/pwa-install.js','/Check-list/manifest.webmanifest','/Check-list/icon-192.svg','/Check-list/icon-512.svg','/Check-list/pwa-offline.html'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
 self.addEventListener('fetch',event=>{
@@ -11,5 +11,5 @@ self.addEventListener('fetch',event=>{
     event.respondWith(fetch(req).catch(()=>caches.match('/Check-list/pwa-offline.html')));
     return;
   }
-  event.respondWith(caches.match(req).then(cached=>cached||fetch(req).then(res=>{if(res&&res.ok){const copy=res.clone();caches.open(CACHE).then(c=>c.put(req,copy));}return res;})));
+  event.respondWith(caches.match(req).then(cached=>cached||fetch(req).then(res=>{if(res&&res.ok){const copy=res.clone();caches.open(CACHE).then(c=>c.put(req,copy));}return res;}));
 });
