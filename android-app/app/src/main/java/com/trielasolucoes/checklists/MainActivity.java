@@ -1,13 +1,22 @@
 package com.trielasolucoes.checklists;
 
+import android.Manifest;
 import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.webkit.CookieManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -25,6 +34,8 @@ import java.util.Locale;
 
 public class MainActivity extends Activity {
     private static final int FILE_CHOOSER_REQUEST = 1001;
+    private static final int NOTIFICATION_PERMISSION_REQUEST = 1002;
+    public static final String NOTIFICATION_CHANNEL_ID = "triela_checklists_reminders";
     private static final String APP_URL = "https://prevencaonx-oss.github.io/Check-list/?app=android";
 
     private WebView webView;
@@ -37,6 +48,8 @@ public class MainActivity extends Activity {
 
         getWindow().setStatusBarColor(Color.rgb(5, 27, 61));
         getWindow().setNavigationBarColor(Color.rgb(5, 27, 61));
+        createNotificationChannel();
+        requestNotificationPermissionIfNeeded();
 
         webView = new WebView(this);
         webView.setBackgroundColor(Color.rgb(245, 247, 251));
@@ -54,7 +67,9 @@ public class MainActivity extends Activity {
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
-        settings.setUserAgentString(settings.getUserAgentString() + " TrielaAndroid/1.0");
+        settings.setUserAgentString(settings.getUserAgentString() + " TrielaAndroid/1.1");
+
+        webView.addJavascriptInterface(new TrielaAndroidBridge(), "TrielaAndroid");
 
         CookieManager.getInstance().setAcceptCookie(true);
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true);
@@ -140,6 +155,80 @@ public class MainActivity extends Activity {
             webView.loadUrl(APP_URL);
         } else {
             webView.restoreState(savedInstanceState);
+        }
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                NOTIFICATION_CHANNEL_ID,
+                "Lembretes de checklists",
+                NotificationManager.IMPORTANCE_HIGH
+            );
+            channel.setDescription("Avisos antes do horário, no vencimento e para atividades pendentes da Triela.");
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            if (manager != null) manager.createNotificationChannel(channel);
+        }
+    }
+
+    private void requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATION_PERMISSION_REQUEST);
+        }
+    }
+
+    private int reminderRequestCode(String id) {
+        return (id == null ? 1 : id.hashCode()) & 0x7fffffff;
+    }
+
+    private PendingIntent reminderPendingIntent(String id, String title, String message) {
+        Intent intent = new Intent(this, ReminderReceiver.class);
+        intent.setAction("com.trielasolucoes.checklists.REMINDER." + (id == null ? "default" : id));
+        intent.putExtra("notification_id", id == null ? "triela" : id);
+        intent.putExtra("title", title == null ? "Triela Checklists" : title);
+        intent.putExtra("message", message == null ? "Você possui uma atividade programada." : message);
+        return PendingIntent.getBroadcast(
+            this,
+            reminderRequestCode(id),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+    }
+
+    private void scheduleReminder(String id, long triggerAtMillis, String title, String message) {
+        AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        if (manager == null) return;
+        long when = Math.max(System.currentTimeMillis() + 250L, triggerAtMillis);
+        PendingIntent pendingIntent = reminderPendingIntent(id, title, message);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            manager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, when, pendingIntent);
+        } else {
+            manager.set(AlarmManager.RTC_WAKEUP, when, pendingIntent);
+        }
+    }
+
+    private void cancelReminder(String id) {
+        AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        if (manager == null) return;
+        PendingIntent pendingIntent = reminderPendingIntent(id, "", "");
+        manager.cancel(pendingIntent);
+        pendingIntent.cancel();
+    }
+
+    private class TrielaAndroidBridge {
+        @JavascriptInterface
+        public void scheduleNotification(String id, long triggerAtMillis, String title, String message) {
+            scheduleReminder(id, triggerAtMillis, title, message);
+        }
+
+        @JavascriptInterface
+        public void cancelNotification(String id) {
+            cancelReminder(id);
+        }
+
+        @JavascriptInterface
+        public void showNotificationNow(String id, String title, String message) {
+            scheduleReminder(id, System.currentTimeMillis() + 400L, title, message);
         }
     }
 
