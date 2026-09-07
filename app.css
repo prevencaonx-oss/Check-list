@@ -19,3 +19,14 @@
 @import url('app19.css');
 @import url('app20.css');
 @import url('app21.css');
+
+/* Identidade visual oficial Triela */
+.sidebar-logo{
+  color:transparent!important;
+  font-size:0!important;
+  text-indent:-9999px!important;
+  background:#071f40 url('triela-mark.svg') center/100% 100% no-repeat!important;
+  border-radius:12px!important;
+  overflow:hidden!important;
+  box-shadow:0 5px 16px rgba(5,27,61,.24);
+}
