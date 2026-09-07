@@ -7,7 +7,7 @@
     <application
         android:allowBackup="false"
         android:icon="@drawable/ic_triela"
-        android:label="Triela Checklists"
+        android:label="Triela"
         android:roundIcon="@drawable/ic_triela"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
