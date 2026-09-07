@@ -8,12 +8,12 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ClipData;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.View;
 import android.webkit.CookieManager;
@@ -37,7 +37,7 @@ public class MainActivity extends Activity {
     private static final int FILE_CHOOSER_REQUEST = 1001;
     private static final int NOTIFICATION_PERMISSION_REQUEST = 1002;
     public static final String NOTIFICATION_CHANNEL_ID = "triela_checklists_reminders";
-    private static final String APP_URL = "https://prevencaonx-oss.github.io/Check-list/?app=android&build=113";
+    private static final String APP_URL = "https://prevencaonx-oss.github.io/Check-list/?app=android&build=115";
 
     private WebView webView;
     private ValueCallback<Uri[]> filePathCallback;
@@ -71,7 +71,7 @@ public class MainActivity extends Activity {
         settings.setDisplayZoomControls(false);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         settings.setDefaultTextEncodingName("UTF-8");
-        settings.setUserAgentString(settings.getUserAgentString() + " TrielaAndroid/1.1.3");
+        settings.setUserAgentString(settings.getUserAgentString() + " TrielaAndroid/1.1.5");
 
         webView.addJavascriptInterface(new TrielaAndroidBridge(), "TrielaAndroid");
 
@@ -88,88 +88,100 @@ public class MainActivity extends Activity {
                 }
                 try {
                     startActivity(new Intent(Intent.ACTION_VIEW, uri));
+                    return true;
                 } catch (Exception ignored) {
+                    return false;
                 }
-                return true;
-            }
-
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                super.onPageFinished(view, url);
-                view.evaluateJavascript(
-                    "document.documentElement.classList.add('triela-native-android');" +
-                    "var b=document.getElementById('trielaInstallBtn');if(b)b.remove();",
-                    null
-                );
             }
         });
 
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
-            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> callback, FileChooserParams fileChooserParams) {
+            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallbackParam, FileChooserParams fileChooserParams) {
                 if (filePathCallback != null) {
                     filePathCallback.onReceiveValue(null);
                 }
-                filePathCallback = callback;
-
-                Intent contentIntent = new Intent(Intent.ACTION_GET_CONTENT);
-                contentIntent.addCategory(Intent.CATEGORY_OPENABLE);
-                contentIntent.setType("*/*");
-
-                String[] accept = fileChooserParams != null ? fileChooserParams.getAcceptTypes() : null;
-                if (accept != null && accept.length > 0 && accept[0] != null && !accept[0].isEmpty()) {
-                    contentIntent.setType(accept[0]);
-                }
+                filePathCallback = filePathCallbackParam;
 
                 Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                Intent[] extraIntents = new Intent[0];
                 if (cameraIntent.resolveActivity(getPackageManager()) != null) {
                     try {
                         File photoFile = createImageFile();
-                        cameraUri = FileProvider.getUriForFile(
-                            MainActivity.this,
-                            getPackageName() + ".fileprovider",
-                            photoFile
-                        );
+                        cameraUri = FileProvider.getUriForFile(MainActivity.this, getPackageName() + ".fileprovider", photoFile);
                         cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, cameraUri);
                         cameraIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                        extraIntents = new Intent[]{cameraIntent};
-                    } catch (IOException ignored) {
-                        cameraUri = null;
+                    } catch (IOException ex) {
+                        cameraIntent = null;
                     }
                 }
 
+                Intent contentIntent = new Intent(Intent.ACTION_GET_CONTENT);
+                contentIntent.addCategory(Intent.CATEGORY_OPENABLE);
+                contentIntent.setType("image/*");
+                contentIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+
                 Intent chooser = new Intent(Intent.ACTION_CHOOSER);
                 chooser.putExtra(Intent.EXTRA_INTENT, contentIntent);
-                chooser.putExtra(Intent.EXTRA_TITLE, "Selecionar evidência");
-                chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, extraIntents);
+                chooser.putExtra(Intent.EXTRA_TITLE, "Adicionar fotos / evidências");
+                if (cameraIntent != null) {
+                    chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{cameraIntent});
+                }
                 startActivityForResult(chooser, FILE_CHOOSER_REQUEST);
                 return true;
             }
         });
 
-        webView.setDownloadListener((url, userAgent, contentDisposition, mimetype, contentLength) -> {
-            try {
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-            } catch (Exception ignored) {
-            }
-        });
+        webView.loadUrl(APP_URL);
+    }
 
-        if (savedInstanceState == null) {
-            webView.loadUrl(APP_URL);
+    private File createImageFile() throws IOException {
+        String stamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
+        File dir = getExternalFilesDir("evidence");
+        if (dir == null) dir = getCacheDir();
+        return File.createTempFile("TRIELA_" + stamp + "_", ".jpg", dir);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != FILE_CHOOSER_REQUEST || filePathCallback == null) return;
+
+        Uri[] results = null;
+        if (resultCode == RESULT_OK) {
+            if (data != null && data.getClipData() != null) {
+                ClipData clip = data.getClipData();
+                results = new Uri[clip.getItemCount()];
+                for (int i = 0; i < clip.getItemCount(); i++) {
+                    results[i] = clip.getItemAt(i).getUri();
+                }
+            } else if (data != null && data.getData() != null) {
+                results = new Uri[]{data.getData()};
+            } else if (cameraUri != null) {
+                results = new Uri[]{cameraUri};
+            }
+        }
+        filePathCallback.onReceiveValue(results);
+        filePathCallback = null;
+        cameraUri = null;
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (webView != null && webView.canGoBack()) {
+            webView.goBack();
         } else {
-            webView.restoreState(savedInstanceState);
+            super.onBackPressed();
         }
     }
 
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
-                NOTIFICATION_CHANNEL_ID,
-                "Lembretes de checklists",
-                NotificationManager.IMPORTANCE_HIGH
+                    NOTIFICATION_CHANNEL_ID,
+                    "Lembretes Triela",
+                    NotificationManager.IMPORTANCE_HIGH
             );
-            channel.setDescription("Avisos antes do horário, no vencimento e para atividades pendentes da Triela.");
+            channel.setDescription("Alertas locais de checklists, rotinas e pendências.");
             NotificationManager manager = getSystemService(NotificationManager.class);
             if (manager != null) manager.createNotificationChannel(channel);
         }
@@ -181,123 +193,66 @@ public class MainActivity extends Activity {
         }
     }
 
-    private int reminderRequestCode(String id) {
-        return (id == null ? 1 : id.hashCode()) & 0x7fffffff;
-    }
-
-    private PendingIntent reminderPendingIntent(String id, String title, String message) {
-        Intent intent = new Intent(this, ReminderReceiver.class);
-        intent.setAction("com.trielasolucoes.checklists.REMINDER." + (id == null ? "default" : id));
-        intent.putExtra("notification_id", id == null ? "triela" : id);
-        intent.putExtra("title", title == null ? "Triela Checklists" : title);
-        intent.putExtra("message", message == null ? "Você possui uma atividade programada." : message);
-        return PendingIntent.getBroadcast(
-            this,
-            reminderRequestCode(id),
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
-    }
-
-    private void scheduleReminder(String id, long triggerAtMillis, String title, String message) {
-        AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        if (manager == null) return;
-        long when = Math.max(System.currentTimeMillis() + 250L, triggerAtMillis);
-        PendingIntent pendingIntent = reminderPendingIntent(id, title, message);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            manager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, when, pendingIntent);
-        } else {
-            manager.set(AlarmManager.RTC_WAKEUP, when, pendingIntent);
-        }
-    }
-
-    private void cancelReminder(String id) {
-        AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        if (manager == null) return;
-        PendingIntent pendingIntent = reminderPendingIntent(id, "", "");
-        manager.cancel(pendingIntent);
-        pendingIntent.cancel();
-    }
-
     private class TrielaAndroidBridge {
         @JavascriptInterface
-        public void scheduleNotification(String id, long triggerAtMillis, String title, String message) {
-            scheduleReminder(id, triggerAtMillis, title, message);
+        public boolean isNativeApp() {
+            return true;
+        }
+
+        @JavascriptInterface
+        public String getPlatform() {
+            return "android";
+        }
+
+        @JavascriptInterface
+        public void scheduleNotification(String id, String title, String body, long whenMs) {
+            runOnUiThread(() -> {
+                try {
+                    Intent intent = new Intent(MainActivity.this, ReminderReceiver.class);
+                    intent.putExtra("title", title == null ? "Triela Checklists" : title);
+                    intent.putExtra("body", body == null ? "Você possui uma atividade programada." : body);
+                    int requestId = Math.abs((id == null ? String.valueOf(whenMs) : id).hashCode());
+                    PendingIntent pi = PendingIntent.getBroadcast(
+                            MainActivity.this,
+                            requestId,
+                            intent,
+                            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+                    );
+                    AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+                    if (alarmManager == null) return;
+                    long triggerAt = Math.max(System.currentTimeMillis() + 1500L, whenMs);
+                    alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pi);
+                } catch (Exception ignored) { }
+            });
         }
 
         @JavascriptInterface
         public void cancelNotification(String id) {
-            cancelReminder(id);
+            runOnUiThread(() -> {
+                try {
+                    int requestId = Math.abs((id == null ? "triela" : id).hashCode());
+                    Intent intent = new Intent(MainActivity.this, ReminderReceiver.class);
+                    PendingIntent pi = PendingIntent.getBroadcast(
+                            MainActivity.this,
+                            requestId,
+                            intent,
+                            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+                    );
+                    AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+                    if (alarmManager != null) alarmManager.cancel(pi);
+                    pi.cancel();
+                } catch (Exception ignored) { }
+            });
         }
 
         @JavascriptInterface
-        public void showNotificationNow(String id, String title, String message) {
-            scheduleReminder(id, System.currentTimeMillis() + 400L, title, message);
-        }
-    }
-
-    private File createImageFile() throws IOException {
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
-        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        return File.createTempFile("TRIELA_" + timeStamp + "_", ".jpg", storageDir);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode != FILE_CHOOSER_REQUEST || filePathCallback == null) {
-            return;
-        }
-
-        Uri[] results = null;
-        if (resultCode == RESULT_OK) {
-            if (data != null && data.getData() != null) {
-                results = new Uri[]{data.getData()};
-            } else if (cameraUri != null) {
-                results = new Uri[]{cameraUri};
-            }
-        }
-
-        filePathCallback.onReceiveValue(results);
-        filePathCallback = null;
-        cameraUri = null;
-    }
-
-    @Override
-    protected void onPause() {
-        if (webView != null) webView.onPause();
-        super.onPause();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (webView != null) webView.onResume();
-    }
-
-    @Override
-    protected void onDestroy() {
-        if (webView != null) {
-            webView.stopLoading();
-            webView.removeAllViews();
-            webView.destroy();
-            webView = null;
-        }
-        super.onDestroy();
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        if (webView != null) webView.saveState(outState);
-        super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (webView != null && webView.canGoBack()) {
-            webView.goBack();
-        } else {
-            super.onBackPressed();
+        public void showNotificationNow(String title, String body) {
+            runOnUiThread(() -> {
+                Intent intent = new Intent(MainActivity.this, ReminderReceiver.class);
+                intent.putExtra("title", title == null ? "Triela Checklists" : title);
+                intent.putExtra("body", body == null ? "Você possui uma atividade programada." : body);
+                sendBroadcast(intent);
+            });
         }
     }
 }
