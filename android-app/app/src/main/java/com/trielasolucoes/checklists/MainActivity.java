@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
@@ -36,7 +37,7 @@ public class MainActivity extends Activity {
     private static final int FILE_CHOOSER_REQUEST = 1001;
     private static final int NOTIFICATION_PERMISSION_REQUEST = 1002;
     public static final String NOTIFICATION_CHANNEL_ID = "triela_checklists_reminders";
-    private static final String APP_URL = "https://prevencaonx-oss.github.io/Check-list/?app=android";
+    private static final String APP_URL = "https://prevencaonx-oss.github.io/Check-list/?app=android&build=113";
 
     private WebView webView;
     private ValueCallback<Uri[]> filePathCallback;
@@ -51,8 +52,10 @@ public class MainActivity extends Activity {
         createNotificationChannel();
         requestNotificationPermissionIfNeeded();
 
+        WebView.setWebContentsDebuggingEnabled(false);
         webView = new WebView(this);
         webView.setBackgroundColor(Color.rgb(245, 247, 251));
+        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         setContentView(webView);
 
         WebSettings settings = webView.getSettings();
@@ -67,7 +70,8 @@ public class MainActivity extends Activity {
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
-        settings.setUserAgentString(settings.getUserAgentString() + " TrielaAndroid/1.1");
+        settings.setDefaultTextEncodingName("UTF-8");
+        settings.setUserAgentString(settings.getUserAgentString() + " TrielaAndroid/1.1.3");
 
         webView.addJavascriptInterface(new TrielaAndroidBridge(), "TrielaAndroid");
 
@@ -260,8 +264,31 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    protected void onPause() {
+        if (webView != null) webView.onPause();
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (webView != null) webView.onResume();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (webView != null) {
+            webView.stopLoading();
+            webView.removeAllViews();
+            webView.destroy();
+            webView = null;
+        }
+        super.onDestroy();
+    }
+
+    @Override
     protected void onSaveInstanceState(Bundle outState) {
-        webView.saveState(outState);
+        if (webView != null) webView.saveState(outState);
         super.onSaveInstanceState(outState);
     }
 
