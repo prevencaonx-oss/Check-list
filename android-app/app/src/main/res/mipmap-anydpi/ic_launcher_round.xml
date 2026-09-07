@@ -1,11 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="512"
-    android:viewportHeight="512">
-    <path android:fillColor="#071F40" android:pathData="M0,0 L512,0 L512,512 L0,512 Z" />
-    <path android:fillColor="@android:color/transparent" android:strokeColor="#08CFCB" android:strokeWidth="76" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M145,330 L232,177 Q256,133 282,177 L329,255" />
-    <path android:fillColor="@android:color/transparent" android:strokeColor="#FF5F70" android:strokeWidth="76" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M304,178 L395,334 Q405,352 383,352 L302,352" />
-    <path android:fillColor="@android:color/transparent" android:strokeColor="#7948F5" android:strokeWidth="76" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M239,317 L194,392 Q183,411 207,411 L347,411" />
-</vector>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/triela_launcher_full" />
+</layer-list>
