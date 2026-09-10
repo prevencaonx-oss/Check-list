@@ -1,0 +1,24 @@
+ATUALIZAÇÃO — DESIGNAÇÃO E CHECKLIST LIVRE
+Projeto: prevencaonx-oss/Check-list
+Arquivo alterado: app35.js
+
+COMO ATUALIZAR NO GITHUB
+1. Abra o repositório Check-list.
+2. Abra o arquivo app35.js.
+3. Clique em Editar (ícone do lápis) ou faça Upload files substituindo o arquivo existente.
+4. Use o app35.js desta atualização.
+5. Confirme o commit na branch main.
+6. Aguarde o GitHub Pages concluir a publicação.
+7. Abra o sistema conectado à internet e atualize a página. Se estiver instalado como PWA, feche e abra novamente.
+
+O QUE FOI CORRIGIDO
+- Preserva scheduleId e storeId quando uma atividade programada/designada é iniciada.
+- Corrige a perda do contexto da designação causada pelo app35.js anterior.
+- Mantém suporte a evidências/fotos/observações também em atividades designadas.
+- Checklist aberto passa a validar as lojas do usuário e as lojas onde o checklist está realmente aberto.
+- Quando houver uma única loja válida para checklist aberto, ela é selecionada automaticamente.
+- Usuário de outra loja não ganha acesso ao checklist aberto.
+- Treinamento continua separado e não recebe a restrição de checklist aberto.
+
+IMPORTANTE
+Esta atualização não apaga, migra nem altera o histórico de execuções existente. Ela corrige o comportamento futuro do sistema.
